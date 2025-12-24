@@ -25,17 +25,24 @@ wheels/
 *.egg-info/
 .installed.cfg
 *.egg
+MANIFEST
 
 .ipynb_checkpoints
 */.ipynb_checkpoints/*
+
+*.html
 
 .idea/
 .vscode/
 *.swp
 *.swo
+.project
+.pydevproject
 
 .DS_Store
 Thumbs.db
+Desktop.ini
+$RECYCLE.BIN/
 
 data/
 datasets/
@@ -45,6 +52,7 @@ output/
 logs/
 lightning_logs/
 wandb/
+*.log
 
 *.pth
 *.pt
@@ -52,5 +60,17 @@ wandb/
 *.bin
 *.h5
 *.onnx
+*.tflite
+*.safetensors  
+models/        
 
 *.prof
+
+.pytest_cache/
+.mypy_cache/
+.coverage
+htmlcov/
+
+kaggle.json    
+secrets.json   
+config_local.py 
