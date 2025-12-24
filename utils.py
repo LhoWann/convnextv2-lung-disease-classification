@@ -59,6 +59,7 @@ class LungDataModule(pl.LightningDataModule):
 def get_class_weights(data_dir):
     """Menghitung class weights untuk imbalanced dataset."""
     train_dir = os.path.join(data_dir, 'train')
+    # Warning: Pada dataset sangat besar, scanning ini bisa lambat.
     dataset = datasets.ImageFolder(train_dir)
     targets = dataset.targets
     classes = dataset.classes
@@ -70,15 +71,27 @@ def get_class_weights(data_dir):
     )
     return torch.tensor(weights, dtype=torch.float), classes
 
-def plot_results(y_true, y_pred, class_names):
-    """Menampilkan classification report dan confusion matrix."""
+def plot_results(y_true, y_pred, class_names, output_dir):
+    """Menyimpan classification report dan confusion matrix ke file."""
+    
+    # 1. Print Report
+    report = classification_report(y_true, y_pred, target_names=class_names)
     print("\nClassification Report:")
-    print(classification_report(y_true, y_pred, target_names=class_names))
+    print(report)
+    
+    # Simpan report ke text file
+    with open(os.path.join(output_dir, 'classification_report.txt'), 'w') as f:
+        f.write(report)
 
+    # 2. Plot & Save Confusion Matrix
     cm = confusion_matrix(y_true, y_pred)
     plt.figure(figsize=(10, 8))
     sns.heatmap(cm, annot=True, fmt='d', cmap='Blues', xticklabels=class_names, yticklabels=class_names)
     plt.xlabel('Predicted')
     plt.ylabel('True')
     plt.title('Confusion Matrix')
-    plt.show()
+    
+    save_path = os.path.join(output_dir, 'confusion_matrix.png')
+    plt.savefig(save_path)
+    print(f"\nConfusion Matrix disimpan di: {save_path}")
+    plt.close() # Tutup plot agar tidak memakan memori

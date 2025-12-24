@@ -13,7 +13,9 @@ def get_args():
     parser.add_argument('--epochs', type=int, default=10)
     parser.add_argument('--batch_size', type=int, default=32)
     parser.add_argument('--lr', type=float, default=5e-5)
-    parser.add_argument('--gpu_id', type=int, default=0)
+    
+    # Menggunakan devices menggantikan gpu_id untuk fleksibilitas
+    parser.add_argument('--devices', type=int, default=1, help="Jumlah GPU (misal 2) atau list ID (misal [0, 1])") 
     parser.add_argument('--num_workers', type=int, default=4)
     return parser.parse_args()
 
@@ -23,6 +25,12 @@ if __name__ == '__main__':
     
     os.makedirs(args.output_dir, exist_ok=True)
 
+    # Agar log tidak duplikat di multi-gpu, print hanya di rank 0
+    # (Note: is_available check untuk menghindari error di cpu only env saat init)
+    if torch.cuda.is_available() and torch.cuda.current_device() == 0:
+        print(f"Loading data from: {args.data_dir}")
+
+    # Hitung bobot kelas (dijalankan di semua proses DDP agar weights konsisten)
     weights_tensor, class_names = get_class_weights(args.data_dir)
     
     data_module = LungDataModule(
@@ -48,11 +56,18 @@ if __name__ == '__main__':
         verbose=True
     )
 
+    # Konfigurasi Strategi DDP
+    # Jika devices > 1, gunakan DDP. Jika 1, gunakan auto (single device)
+    strategy = 'ddp' if args.devices > 1 else 'auto'
+    sync_bn = True if args.devices > 1 else False
+
     trainer = pl.Trainer(
         max_epochs=args.epochs,
         accelerator='gpu',
-        devices=[args.gpu_id],
+        devices=args.devices,      
+        strategy=strategy,         
         precision='16-mixed',
+        sync_batchnorm=sync_bn,    # Penting untuk akurasi batchnorm di multi-gpu
         callbacks=[checkpoint_callback],
         logger=True,
         default_root_dir=args.output_dir
@@ -60,29 +75,34 @@ if __name__ == '__main__':
 
     trainer.fit(model, data_module)
 
-    print("\n--- Starting Evaluation ---")
-    best_model_path = checkpoint_callback.best_model_path
-    
-    model = LungDiseaseModel.load_from_checkpoint(
-        best_model_path,
-        class_weights=weights_tensor 
-    )
-    model.eval()
-    model.to('cuda')
+    # Evaluasi
+    # Di DDP, kita tidak ingin semua GPU menjalankan evaluasi plot gambar secara bersamaan.
+    # Hanya Rank 0 yang bertugas melakukan evaluasi akhir dan plotting.
+    if trainer.global_rank == 0:
+        print("\nEvaluation (Rank 0)")
+        best_model_path = checkpoint_callback.best_model_path
+        print(f"Loading best model from: {best_model_path}")
+        
+        model = LungDiseaseModel.load_from_checkpoint(
+            best_model_path,
+            class_weights=weights_tensor 
+        )
+        model.eval()
+        model.to('cuda:0')
 
-    y_true = []
-    y_pred = []
+        y_true = []
+        y_pred = []
 
-    data_module.setup()
-    test_loader = data_module.test_dataloader()
+        data_module.setup()
+        test_loader = data_module.test_dataloader()
 
-    with torch.no_grad():
-        for inputs, labels in test_loader:
-            inputs = inputs.to('cuda')
-            logits = model(inputs)
-            preds = torch.argmax(logits, dim=1)
-            
-            y_true.extend(labels.cpu().numpy())
-            y_pred.extend(preds.cpu().numpy())
+        with torch.no_grad():
+            for inputs, labels in test_loader:
+                inputs = inputs.to('cuda:0')
+                logits = model(inputs)
+                preds = torch.argmax(logits, dim=1)
+                
+                y_true.extend(labels.cpu().numpy())
+                y_pred.extend(preds.cpu().numpy())
 
-    plot_results(y_true, y_pred, class_names)
+        plot_results(y_true, y_pred, class_names, args.output_dir)

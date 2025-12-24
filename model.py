@@ -38,7 +38,6 @@ class LungDiseaseModel(pl.LightningModule):
         self.train_acc(preds, targets)
         self.train_f1(preds, targets)
         
-        # sync_dist=True penting untuk DDP logging
         self.log('train_loss', loss, prog_bar=True, sync_dist=True)
         self.log('train_acc', self.train_acc, prog_bar=True, sync_dist=True)
         self.log('train_f1', self.train_f1, prog_bar=True, sync_dist=True)
@@ -59,5 +58,7 @@ class LungDiseaseModel(pl.LightningModule):
 
     def configure_optimizers(self):
         optimizer = optim.AdamW(self.parameters(), lr=self.hparams.lr, weight_decay=self.hparams.weight_decay)
-        scheduler = optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=10)
+        # Menggunakan max_epochs dari trainer agar tidak hardcoded
+        max_epochs = self.trainer.max_epochs if self.trainer.max_epochs else 10
+        scheduler = optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=max_epochs)
         return [optimizer], [scheduler]

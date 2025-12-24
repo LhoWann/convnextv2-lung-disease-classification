@@ -50,7 +50,7 @@ Jalankan `train.py`. Argumen penting:
 
 - `--data_dir` (str, wajib): path ke root dataset.
 - `--output_dir` (str, default `./output`): tempat menyimpan checkpoint dan log.
-- `--gpu_id` (int, default `0`): ID GPU yang digunakan.
+- `--devices` (Int, default `1`): Jumlah GPU yang ingin digunakan.
 - `--epochs` (int, default `10`): jumlah epoch.
 - `--batch_size` (int, default `32`): ukuran batch.
 - `--lr` (float, default `5e-5`): learning rate awal.
@@ -71,13 +71,11 @@ python train.py --data_dir "D:\Datasets\Medical\Lung_Xray" --output_dir .\experi
 Memilih GPU tertentu:
 
 ```bash
-python train.py --data_dir ./data --gpu_id 1
+python train.py --data_dir --data_dir --devices 2 --batch_size 64 --num_workers 4
 ```
 
-Contoh mengganti hyperparameter:
-
 ```bash
-python train.py --data_dir ./data --batch_size 64 --lr 1e-4 --epochs 20 --gpu_id 0
+Bisa juga disesuaikan hyperparameternya
 ```
 
 ## Output
