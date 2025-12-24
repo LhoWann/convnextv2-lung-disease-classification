@@ -4,6 +4,8 @@ import torch
 import pytorch_lightning as pl
 from model import LungDiseaseModel
 from utils import LungDataModule, get_class_weights, plot_results
+import warnings
+warnings.filterwarnings("ignore")
 
 def get_args():
     parser = argparse.ArgumentParser()
