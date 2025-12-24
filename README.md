@@ -73,9 +73,14 @@ Memilih GPU tertentu:
 ```bash
 python train.py --data_dir --data_dir --devices 2 --batch_size 64 --num_workers 4
 ```
-
+Menyesuaikan Parameter:
 ```bash
-Bisa juga disesuaikan hyperparameternya
+!python /kaggle/working/convnextv2-lung-disease-classification/train.py \
+  --data_dir /kaggle/input/combined-unknown-pneumonia-and-tuberculosis/data \
+  --devices 2 \
+  --batch_size 128 \
+  --epochs 10 \
+  --num_workers 4
 ```
 
 ## Output
@@ -89,3 +94,4 @@ Bisa juga disesuaikan hyperparameternya
 - Scheduler: `CosineAnnealingLR`.
 - Mixed precision (16-bit) digunakan untuk efisiensi memori.
 - Class weights dihitung otomatis untuk menangani ketidakseimbangan kelas.
+
