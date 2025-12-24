@@ -2,9 +2,10 @@ import os
 import argparse
 import torch
 import pytorch_lightning as pl
+from pytorch_lightning.loggers import CSVLogger 
 import warnings
 from model import LungDiseaseModel
-from utils import LungDataModule, get_class_weights, plot_results
+from utils import LungDataModule, get_class_weights, plot_results, plot_history 
 
 warnings.filterwarnings("ignore")
 
@@ -59,6 +60,8 @@ if __name__ == '__main__':
     strategy = 'ddp' if args.devices > 1 else 'auto'
     sync_bn = True if args.devices > 1 else False
 
+    csv_logger = CSVLogger(save_dir=args.output_dir, name="logs")
+
     trainer = pl.Trainer(
         max_epochs=args.epochs,
         accelerator='gpu',
@@ -67,14 +70,16 @@ if __name__ == '__main__':
         precision='16-mixed',      
         sync_batchnorm=sync_bn,    
         callbacks=[checkpoint_callback],
-        logger=True,
+        logger=csv_logger, 
         default_root_dir=args.output_dir
     )
 
     trainer.fit(model, data_module)
 
+    plot_history(csv_logger.log_dir, args.output_dir)
+
     if trainer.global_rank == 0:
-        print("\n--- Starting Evaluation (Rank 0) ---")
+        print("\nEvaluation (Rank 0)")
         best_model_path = checkpoint_callback.best_model_path
         print(f"Loading best model from: {best_model_path}")
         
