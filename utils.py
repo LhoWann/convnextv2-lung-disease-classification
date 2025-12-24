@@ -18,7 +18,7 @@ class LungDataModule(pl.LightningDataModule):
         self.num_workers = num_workers
         self.processor = AutoImageProcessor.from_pretrained(model_name)
         
-        # Menentukan ukuran gambar berdasarkan config model (biasanya 224)
+        # Menentukan ukuran gambar berdasarkan config model (224 x 224)
         self.size = (
             self.processor.size["shortest_edge"],
             self.processor.size["shortest_edge"]
@@ -66,10 +66,7 @@ def get_class_weights(data_dir):
     Berguna untuk melihat apakah dataset imbalanced.
     """
     train_dir = os.path.join(data_dir, 'train')
-    print(f"\n[INFO] Checking class distribution in: {train_dir}")
     
-    # Scanning dataset untuk mendapatkan label
-    # Warning: Pada dataset jutaan gambar, ini bisa lambat.
     dataset = datasets.ImageFolder(train_dir)
     targets = dataset.targets
     classes = dataset.classes
@@ -85,8 +82,8 @@ def get_class_weights(data_dir):
         y=targets
     )
     
-    # --- TAMPILKAN TABEL STATISTIK ---
-    print(f"[INFO] Total samples: {total_samples}")
+    # TAMPILKAN TABEL STATISTIK
+    print(f"Total samples: {total_samples}")
     print("-" * 55)
     print(f"{'Class Name':<20} | {'Count':<10} | {'Weight':<10}")
     print("-" * 55)
@@ -98,7 +95,6 @@ def get_class_weights(data_dir):
         print(f"{class_name:<20} | {count:<10} | {weight:.4f}")
         
     print("-" * 55 + "\n")
-    # ---------------------------------
     
     return torch.tensor(weights, dtype=torch.float), classes
 
