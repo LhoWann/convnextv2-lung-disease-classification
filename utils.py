@@ -31,11 +31,9 @@ class LungDataModule(pl.LightningDataModule):
 
     def setup(self, stage=None):
         train_transform = transforms.Compose([
-            transforms.RandomResizedCrop(self.size, scale=(0.85, 1.0), ratio=(0.9, 1.1)),
+            transforms.Resize(self.size),
             transforms.RandomHorizontalFlip(p=0.5),
-            transforms.RandomRotation(degrees=15),
-            transforms.RandomAffine(degrees=0, translate=(0.1, 0.1)),
-            transforms.ColorJitter(brightness=0.15, contrast=0.15),
+            transforms.RandomRotation(degrees=10),
             transforms.ToTensor(),
             self.normalize
         ])
