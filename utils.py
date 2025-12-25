@@ -1,7 +1,7 @@
 import os
 import torch
 import numpy as np
-import pandas as pd # [BARU] Import pandas
+import pandas as pd 
 import pytorch_lightning as pl
 import matplotlib.pyplot as plt
 import seaborn as sns
@@ -9,7 +9,7 @@ from torch.utils.data import DataLoader
 from torchvision import datasets, transforms
 from transformers import AutoImageProcessor
 from sklearn.utils.class_weight import compute_class_weight
-from sklearn.metrics import classification_report, confusion_matrix, accuracy_score # [BARU] Import accuracy_score
+from sklearn.metrics import classification_report, confusion_matrix, accuracy_score 
 
 class LungDataModule(pl.LightningDataModule):
     def __init__(self, data_dir, model_name, batch_size=32, num_workers=4):
@@ -31,9 +31,11 @@ class LungDataModule(pl.LightningDataModule):
 
     def setup(self, stage=None):
         train_transform = transforms.Compose([
-            transforms.Resize(self.size),
-            transforms.RandomHorizontalFlip(),
-            transforms.RandomRotation(10),
+            transforms.RandomResizedCrop(self.size, scale=(0.85, 1.0), ratio=(0.9, 1.1)),
+            transforms.RandomHorizontalFlip(p=0.5),
+            transforms.RandomRotation(degrees=15),
+            transforms.RandomAffine(degrees=0, translate=(0.1, 0.1)),
+            transforms.ColorJitter(brightness=0.15, contrast=0.15),
             transforms.ToTensor(),
             self.normalize
         ])
@@ -108,7 +110,6 @@ def plot_history(log_dir, output_dir):
     
     # 1. Plot Loss
     plt.subplot(1, 2, 1)
-    # Sesuaikan nama key dengan apa yang Anda log di model.py (misal: 'train_loss', 'val_loss')
     if 'train_loss' in epoch_metrics.columns:
         plt.plot(epoch_metrics.index, epoch_metrics['train_loss'], label='Train Loss', marker='.')
     if 'val_loss' in epoch_metrics.columns:
@@ -152,32 +153,29 @@ def plot_results(y_true, y_pred, class_names, output_dir):
     with open(os.path.join(output_dir, 'classification_report.txt'), 'w') as f:
         f.write(report)
 
-    # [BARU] Hitung Akurasi Detail
     overall_acc = accuracy_score(y_true, y_pred)
     cm = confusion_matrix(y_true, y_pred)
     # Akurasi per kelas (Recall) = Diagonal / Total baris
     class_acc = cm.diagonal() / cm.sum(axis=1)
     
-    # Format teks detail
     detail_text = f"Overall Accuracy: {overall_acc:.2%}\n\nPer-class Accuracy:\n"
     for name, acc in zip(class_names, class_acc):
         detail_text += f"{name}: {acc:.2%}\n"
 
     # 2. Plot & Save Confusion Matrix
-    plt.figure(figsize=(10, 9)) # Sedikit lebih tinggi untuk teks bawah
+    plt.figure(figsize=(10, 9)) 
     sns.heatmap(cm, annot=True, fmt='d', cmap='Blues', xticklabels=class_names, yticklabels=class_names)
     plt.xlabel('Predicted')
     plt.ylabel('True')
     plt.title(f'Confusion Matrix (Overall Acc: {overall_acc:.2%})')
     
-    # Menambahkan teks detail akurasi di bawah plot
+    # teks detail akurasi di bawah plot
     plt.figtext(0.5, 0.02, detail_text, wrap=True, horizontalalignment='center', fontsize=10, 
                 bbox=dict(facecolor='white', alpha=0.8, edgecolor='gray'))
     
-    # Gunakan layout rect untuk memberi ruang bagi teks di bawah
-    plt.tight_layout(rect=[0, 0.15, 1, 1]) 
+    plt.tight_layout(rect=[0, 0.25, 1, 1]) 
     
     save_path = os.path.join(output_dir, 'confusion_matrix.png')
     plt.savefig(save_path)
-    print(f"\nConfusion Matrix (dengan detail) disimpan di: {save_path}")
+    print(f"\nConfusion Matrix Saved to {save_path}")
     plt.close()
