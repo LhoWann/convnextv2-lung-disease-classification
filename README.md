@@ -118,7 +118,6 @@ Perhitungan:
 
 $$
 lr_{new} = 0.0008 \times \frac{16}{1024} = 1.25 \times 10^{-5}
-
 $$
 
 Dalam implementasi ini, nilai dibulatkan menjadi $2 \times 10^{-5}$ **(`2e-5`)** untuk mempercepat konvergensi pada dataset berukuran 13.000 citra tanpa merusak bobot  *pre-trained* .
@@ -137,3 +136,4 @@ Pada eksperimen menggunakan dataset X-Ray paru (~13.000 citra), model ini mencap
 * **Disclaimer:** Sistem ini adalah alat bantu keputusan ( *Clinical Decision Support* ) dan bukan pengganti diagnosis dokter ahli.
 
 *Dikembangkan untuk Tugas Akhir/Penelitian Infrastruktur Sains Data.*
+
