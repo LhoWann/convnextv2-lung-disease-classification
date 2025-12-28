@@ -97,6 +97,32 @@ streamlit run app.py
 * **AI Analysis:** Prediksi penyakit beserta tingkat keyakinan ( *confidence score* ).
 * **Explainability:** Toggle "Explain AI Decision" untuk melihat Grad-CAM overlay.
 
+## Konfigurasi Hyperparameter
+
+Penentuan *Learning Rate* (LR) mengikuti **Linear Scaling Rule** sesuai paper ConvNeXt V2 untuk menjaga stabilitas pelatihan pada *batch size* kecil.
+
+Rumus yang digunakan:
+
+
+$$
+lr_{new} = lr_{base} \times \frac{batch_size_{new}}{batch_size_{base}}
+$$
+
+Dimana:
+
+- $lr_{base} = 8 \times 10^{-4}$ (Base LR dari paper)
+- $batch\_size_{base} = 1024$ (Base Batch dari paper)
+- $batch_size_{new} = 16$ (Disesuaikan dengan limitasi VRAM)
+
+Perhitungan:
+
+$$
+lr_{new} = 0.0008 \times \frac{16}{1024} = 1.25 \times 10^{-5}
+
+$$
+
+Dalam implementasi ini, nilai dibulatkan menjadi $2 \times 10^{-5}$ **(`2e-5`)** untuk mempercepat konvergensi pada dataset berukuran 13.000 citra tanpa merusak bobot  *pre-trained* .
+
 ## Performa Model
 
 Pada eksperimen menggunakan dataset X-Ray paru (~13.000 citra), model ini mencapai performa:
