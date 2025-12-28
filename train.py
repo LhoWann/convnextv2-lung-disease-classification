@@ -13,9 +13,12 @@ def get_args():
     parser = argparse.ArgumentParser()
     parser.add_argument('--data_dir', type=str, required=True)
     parser.add_argument('--output_dir', type=str, default='./output')
+    
     parser.add_argument('--model_name', type=str, default='facebook/convnextv2-tiny-22k-224')
-    parser.add_argument('--epochs', type=int, default=10)
-    parser.add_argument('--lr', type=float, default=5e-5)
+    
+    parser.add_argument('--epochs', type=int, default=15)
+    
+    parser.add_argument('--lr', type=float, default=2e-5)
     
     parser.add_argument('--batch_size', type=int, default=16) 
     parser.add_argument('--num_workers', type=int, default=2)
