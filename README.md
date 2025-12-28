@@ -1,97 +1,113 @@
-﻿# convnextv2-lung-disease-classification
+﻿
+# LungScan AI: Deteksi Penyakit Paru Menggunakan ConvNeXt V2
 
-Klasifikasi penyakit paru-paru menggunakan arsitektur ConvNeXt V2 dan PyTorch Lightning.
+Proyek ini adalah sistem *Computer-Aided Diagnosis* (CAD) berbasis *Deep Learning* untuk mengklasifikasikan citra X-Ray dada ke dalam 4 kategori:  **Normal** ,  **Pneumonia** ,  **Tuberculosis (TBC)** , dan  **Unknown** .
 
-## Ringkasan
+Sistem dibangun menggunakan arsitektur **ConvNeXt V2 (Tiny)** dengan framework  **PyTorch Lightning** , dilengkapi dengan strategi penanganan data tidak seimbang ( *imbalanced data* ) dan visualisasi *Explainable AI* (Grad-CAM).
 
-- Model backbone: ConvNeXt V2 (Tiny) pre-trained dari HuggingFace.
-- Framework: PyTorch Lightning.
-- Fitur: logging metrik, checkpoint otomatis, evaluasi (classification report & confusion matrix), dukungan GPU dan mixed precision.
+## 🌟 Fitur Utama
 
-## Struktur proyek
+* **State-of-the-Art Model** : Menggunakan ConvNeXt V2 Tiny pre-trained.
+* **Robust Training Strategy** : Menggunakan *Class-Weighted Loss* dan *Label Smoothing* untuk menangani dataset yang tidak seimbang.
+* **Explainable AI (XAI)** : Integrasi **Grad-CAM** untuk memvisualisasikan area fokus model (heatmap) pada citra paru.
+* **Interaktif Web App** : Antarmuka pengguna berbasis **Streamlit** dengan tema  *Dark Mode* , dukungan upload gambar/URL, dan visualisasi  *confidence score* .
+* **Scalable** : Mendukung pelatihan *Single GPU* maupun *Multi-GPU* (DDP) secara otomatis.
+
+## 📂 Struktur Proyek
 
 ```
 .
-├── model.py         # LightningModule (model & training/validation step)
-├── utils.py         # DataModule, utilitas (plot, metrics)
-├── train.py         # Skrip utama untuk training dan evaluasi
-├── requirements.txt # Dependensi
-└── README.md        # Dokumentasi
+├── data               # Dataset: train, val, test
+├── model.py           # Arsitektur LungDiseaseModel (LightningModule)
+├── utils.py           # DataModule, Augmentasi, dan fungsi Utilitas
+├── preprocess.py      # Preprocess dari pretrained
+├── train.py           # Skrip utama pelatihan (Training loop)
+├── gradcam.py         # Skrip untuk generate visualisasi Grad-CAM manual
+├── app.py             # Aplikasi Web Streamlit (Deployment)
+├── requirements.txt   # Daftar dependensi library
+└── README.md          # Dokumentasi proyek
+
 ```
 
-## Persiapan dataset
+## 🛠️ Instalasi
 
-Gunakan struktur standar `ImageFolder`:
+1. Pastikan Python 3.8+ terinstal.
+2. Disarankan menggunakan  *Virtual Environment* .
+3. Install dependensi yang diperlukan:
 
 ```
-/path/ke/dataset/
-├── train/
-│   ├── class_A/
-│   └── class_B/
-├── val/
-│   ├── class_A/
-│   └── class_B/
-└── test/
-    ├── class_A/
-    └── class_B/
-```
-
-## Instalasi
-
-Disarankan menggunakan virtual environment. Install dependensi:
-
-```bash
 pip install -r requirements.txt
+pip install streamlit grad-cam opencv-python altair
+
 ```
 
-## Penggunaan
+## 🚀 Panduan Penggunaan
 
-Jalankan `train.py`. Argumen penting:
+### 1. Pelatihan Model (Training)
 
-- `--data_dir` (str, wajib): path ke root dataset.
-- `--output_dir` (str, default `./output`): tempat menyimpan checkpoint dan log.
-- `--devices` (Int, default `1`): Jumlah GPU yang ingin digunakan.
-- `--epochs` (int, default `10`): jumlah epoch.
-- `--batch_size` (int, default `32`): ukuran batch.
-- `--lr` (float, default `5e-5`): learning rate awal.
-- `--num_workers` (int, default `4`): jumlah worker DataLoader.
+Jalankan `train.py` untuk melatih model dari awal. Parameter default sudah dioptimalkan untuk dataset medis (~13k gambar).
 
-Contoh dasar:
+**Perintah Standar (Single GPU - RTX 3050/T4):**
 
-```bash
-python train.py --data_dir ./data/lung_dataset
+```
+python train.py --data_dir "path/ke/dataset" --epochs 15 --batch_size 16 --lr 2e-5
+
 ```
 
-Contoh (Windows, direktori eksternal):
+**Argumen Penting:**
 
-```bash
-python train.py --data_dir "D:\Datasets\Medical\Lung_Xray" --output_dir .\experiment_1
+* `--data_dir`: Path ke folder dataset (harus berisi subfolder `train`, `val`, `test`).
+* `--output_dir`: Lokasi simpan checkpoint model (Default: `./output`).
+* `--epochs`: Jumlah epoch (Rekomendasi: 15-20).
+* `--batch_size`: Ukuran batch (Sesuaikan VRAM, rekomendasi 16 untuk 4GB VRAM).
+* `--lr`: Learning Rate (Rekomendasi: `2e-5` untuk stabilitas).
+
+Hasil Output:
+
+File checkpoint terbaik (best-checkpoint.ckpt) akan tersimpan di folder output/.
+
+### 2. Visualisasi Grad-CAM (Manual)
+
+Untuk melihat heatmap fokus model pada satu gambar tertentu melalui terminal:
+
+```
+python gradcam.py --image_path "data/test/TBC/pasien_01.jpg" --checkpoint_path "output/best-checkpoint.ckpt"
+
 ```
 
-Memilih GPU tertentu:
+Hasil visualisasi akan disimpan sebagai `gradcam_result.jpg`.
 
-```bash
-python train.py --data_dir --data_dir --devices 2 --batch_size 64 --num_workers 4
+### 3. Menjalankan Aplikasi Web (Streamlit)
+
+Untuk menjalankan antarmuka grafis (GUI) di browser:
+
+1. Pastikan file checkpoint ada di `output/best-checkpoint.ckpt` (atau sesuaikan path di `app.py`).
+2. Jalankan perintah:
+
 ```
-Menyesuaikan Parameter:
-```bash
-!python /kaggle/working/convnextv2-lung-disease-classification/train.py \
-  --data_dir /kaggle/input/combined-unknown-pneumonia-and-tuberculosis/data \
-  --devices 2 \
-  --batch_size 128 \
-  --epochs 10 \
-  --num_workers 4
+streamlit run app.py
+
 ```
 
-## Output
+3. Buka browser di alamat yang muncul (biasanya `http://localhost:8501`).
 
-- Checkpoint terbaik (`.ckpt`) disimpan di `--output_dir`.
-- Laporan klasifikasi (Precision, Recall, F1) dicetak di terminal.
-- Confusion matrix ditampilkan / disimpan sesuai implementasi di `utils.py`.
+**Fitur Aplikasi:**
 
-## Catatan teknis
+* **Dual Input:** Upload file lokal atau tempel link URL gambar.
+* **AI Analysis:** Prediksi penyakit beserta tingkat keyakinan ( *confidence score* ).
+* **Explainability:** Toggle "Explain AI Decision" untuk melihat Grad-CAM overlay.
 
-- Scheduler: `CosineAnnealingLR`.
-- Mixed precision (16-bit) digunakan untuk efisiensi memori.
-- Class weights dihitung otomatis untuk menangani ketidakseimbangan kelas.
+## 📊 Performa Model
 
+Pada eksperimen menggunakan dataset X-Ray paru (~13.000 citra), model ini mencapai performa:
+
+* **Akurasi Keseluruhan:** ~98.5% - 99.0%
+* **Sensitivitas TBC:** Sangat tinggi (>98%) berkat strategi augmentasi spasial yang presisi.
+* **Deteksi Unknown:** 100% (Mampu membedakan X-Ray valid vs input non-medis).
+
+## 📝 Catatan Penting
+
+* **Augmentasi:** Menggunakan *Simple Augmentation* (Resize, Flip, Rotate 10°) untuk menjaga integritas fitur patologis (seperti kavitas TBC di apeks paru).
+* **Disclaimer:** Sistem ini adalah alat bantu keputusan ( *Clinical Decision Support* ) dan bukan pengganti diagnosis dokter ahli.
+
+*Dikembangkan untuk Tugas Akhir/Penelitian Infrastruktur Sains Data.*

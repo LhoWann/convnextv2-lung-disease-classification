@@ -79,5 +79,3 @@ output_finetune/
 output_finetune/logs_finetune/
 
 output_viz/
-
-app.py
