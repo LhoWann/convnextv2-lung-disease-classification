@@ -5,7 +5,7 @@ Proyek ini adalah sistem *Computer-Aided Diagnosis* (CAD) berbasis *Deep Learnin
 
 Sistem dibangun menggunakan arsitektur **ConvNeXt V2 (Tiny)** dengan framework  **PyTorch Lightning** , dilengkapi dengan strategi penanganan data tidak seimbang ( *imbalanced data* ) dan visualisasi *Explainable AI* (Grad-CAM).
 
-## 🌟 Fitur Utama
+## Fitur Utama
 
 * **State-of-the-Art Model** : Menggunakan ConvNeXt V2 Tiny pre-trained.
 * **Robust Training Strategy** : Menggunakan *Class-Weighted Loss* dan *Label Smoothing* untuk menangani dataset yang tidak seimbang.
@@ -13,7 +13,7 @@ Sistem dibangun menggunakan arsitektur **ConvNeXt V2 (Tiny)** dengan framework  
 * **Interaktif Web App** : Antarmuka pengguna berbasis **Streamlit** dengan tema  *Dark Mode* , dukungan upload gambar/URL, dan visualisasi  *confidence score* .
 * **Scalable** : Mendukung pelatihan *Single GPU* maupun *Multi-GPU* (DDP) secara otomatis.
 
-## 📂 Struktur Proyek
+## Struktur Proyek
 
 ```
 .
@@ -29,7 +29,7 @@ Sistem dibangun menggunakan arsitektur **ConvNeXt V2 (Tiny)** dengan framework  
 
 ```
 
-## 🛠️ Instalasi
+## Instalasi
 
 1. Pastikan Python 3.8+ terinstal.
 2. Disarankan menggunakan  *Virtual Environment* .
@@ -41,7 +41,7 @@ pip install streamlit grad-cam opencv-python altair
 
 ```
 
-## 🚀 Panduan Penggunaan
+## Panduan Penggunaan
 
 ### 1. Pelatihan Model (Training)
 
@@ -97,7 +97,7 @@ streamlit run app.py
 * **AI Analysis:** Prediksi penyakit beserta tingkat keyakinan ( *confidence score* ).
 * **Explainability:** Toggle "Explain AI Decision" untuk melihat Grad-CAM overlay.
 
-## 📊 Performa Model
+## Performa Model
 
 Pada eksperimen menggunakan dataset X-Ray paru (~13.000 citra), model ini mencapai performa:
 
@@ -105,7 +105,7 @@ Pada eksperimen menggunakan dataset X-Ray paru (~13.000 citra), model ini mencap
 * **Sensitivitas TBC:** Sangat tinggi (>98%) berkat strategi augmentasi spasial yang presisi.
 * **Deteksi Unknown:** 100% (Mampu membedakan X-Ray valid vs input non-medis).
 
-## 📝 Catatan Penting
+## Catatan Penting
 
 * **Augmentasi:** Menggunakan *Simple Augmentation* (Resize, Flip, Rotate 10°) untuk menjaga integritas fitur patologis (seperti kavitas TBC di apeks paru).
 * **Disclaimer:** Sistem ini adalah alat bantu keputusan ( *Clinical Decision Support* ) dan bukan pengganti diagnosis dokter ahli.
